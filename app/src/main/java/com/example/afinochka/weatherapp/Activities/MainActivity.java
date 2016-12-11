@@ -91,10 +91,11 @@ public class MainActivity extends AppCompatActivity {
         locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
         db = new DatabaseHandler(this);
 
-        if (checkPermissions())
+        checkPermissions();
+        /*if (checkPermissions())
             checkContentView();
         else
-            setContent(R.layout.nothing_to_show_layout);
+            setContent(R.layout.nothing_to_show_layout);*/
 
     }
 
@@ -102,30 +103,30 @@ public class MainActivity extends AppCompatActivity {
         if (isOnline()) {
             setLocationManager();
             setContent(R.layout.main_layout_without_collapse);
-        } else if ((!isOnline() && getLastWeather() == null)) {
-            setContent(R.layout.nothing_to_show_layout);
-        } else {
+        } else if ((!isOnline() && getLastWeather() != null)) {
             setContent(R.layout.main_layout_without_collapse);
             addValuesToViews(getLastWeather());
+        } else
+            setContent(R.layout.nothing_to_show_layout);
 
-        }
+
     }
 
     private boolean checkPermissions() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            checkContentView();
             return true;
-        }else {
+        }else
             requestPermissions();
-            return false;
-        }
+        return false;
+
     }
 
     private void requestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSION_REQUEST_CODE);
     }
 
@@ -136,8 +137,7 @@ public class MainActivity extends AppCompatActivity {
             case PERMISSION_REQUEST_CODE: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setLocationManager();
-                    setContent(R.layout.main_layout_without_collapse);
+                    checkContentView();
                 } else {
                     setContent(R.layout.nothing_to_show_layout);
                 }
