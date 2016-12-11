@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorPrimary"
-    android:fitsSystemWindows="true">
+    android:background="?attr/colorPrimary">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="215dp"
         android:fitsSystemWindows="true"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
@@ -20,19 +20,14 @@
             android:orientation="vertical">
 
             <android.support.v7.widget.Toolbar
-                android:id="@+id/main.toolbar"
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/topBackground">
-
-                <TextView
-                    android:id="@+id/header_title"
-                    style="@style/TextAppearance.AppCompat.Title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="now"
-                    android:textColor="@android:color/white"
-                    android:textSize="20sp" />
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:background="@color/topBackground"
+                app:title="now"
+                app:popupTheme="@style/ThemeOverlay.AppCompat">
 
             </android.support.v7.widget.Toolbar>
 
@@ -41,16 +36,17 @@
                 android:layout_height="match_parent"
                 android:background="@color/topBackground"
                 android:fitsSystemWindows="true"
-                android:gravity="center_vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="10dp"
                 android:paddingEnd="40dp"
-                android:paddingStart="50dp">
+                android:paddingStart="45dp">
 
                 <ImageView
-                    android:id="@+id/main.backdrop"
+                    android:id="@+id/icon_weather"
                     android:layout_width="100dp"
                     android:layout_height="110dp"
-                    android:layout_weight="0.1"
-                    android:src="@drawable/sun_big" />
+                    android:contentDescription="@string/icon_weather"
+                    android:layout_weight="0.1" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -63,31 +59,37 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
-                        android:text="Serbia"
+                        android:fontFamily="sans-serif"
+                        android:id="@+id/country"
                         android:textColor="@android:color/white"
-                        android:textSize="18sp" />
+                        android:textSize="19sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
-                        android:text="Belgrade"
+                        android:fontFamily="sans-serif"
+                        android:id="@+id/city"
                         android:textColor="@android:color/black"
                         android:textSize="25sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Sunny 19 C"
+                        android:id="@+id/weather"
+                        android:fontFamily="monospace"
                         android:textColor="@android:color/white"
                         android:textSize="20sp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
+
     </android.support.design.widget.AppBarLayout>
 
     <View
+        android:id="@+id/separator"
         android:layout_width="match_parent"
+        android:layout_marginTop="213dp"
         android:layout_height="2dp"
         android:background="@android:color/white" />
 

@@ -14,13 +14,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class API {
 
     private static APIFunctions apiFunctions;
-    private static Retrofit retrofit;
 
     private API(){}
-
-    private static Retrofit getRetrofit(){
-        return retrofit;
-    }
 
     private static Retrofit createRetrofit(String url){
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
@@ -51,6 +46,7 @@ public class API {
             HttpUrl url = originalHttpUrl.newBuilder()
                     .addQueryParameter("appid", APIConst.API_KEY)
                     .addQueryParameter("units", "metric")
+                    .addQueryParameter("cnt", "28")
                     .build();
             Request.Builder requestBuilder = original.newBuilder()
                     .url(url);
@@ -71,7 +67,7 @@ public class API {
     }
 
     private static void createAPI(String url){
-        retrofit = createRetrofit(url);
+        Retrofit retrofit = createRetrofit(url);
         apiFunctions = retrofit.create(APIFunctions.class);
     }
 

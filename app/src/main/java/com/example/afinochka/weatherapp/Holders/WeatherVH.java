@@ -1,4 +1,4 @@
-package com.example.afinochka.weatherapp.Adapters;
+package com.example.afinochka.weatherapp.Holders;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -15,7 +15,7 @@ public class WeatherVH extends RecyclerView.ViewHolder {
     private TextView temperature;
     private TextView pressure;
     private TextView humidity;
-    private TextView humidity2;
+    private TextView windSpeed;
 
     private ImageView weatherImage;
 
@@ -27,7 +27,7 @@ public class WeatherVH extends RecyclerView.ViewHolder {
         temperature = (TextView) itemView.findViewById(R.id.temperature);
         pressure = (TextView) itemView.findViewById(R.id.pressure);
         humidity = (TextView) itemView.findViewById(R.id.humidity);
-        humidity2 = (TextView) itemView.findViewById(R.id.humidity_2);
+        windSpeed = (TextView) itemView.findViewById(R.id.wind_speed);
 
         weatherImage = (ImageView) itemView.findViewById(R.id.weather_image);
     }
@@ -56,8 +56,8 @@ public class WeatherVH extends RecyclerView.ViewHolder {
         this.humidity.setText(value);
     }
 
-    public void setHumidity2(String value) {
-        this.humidity2.setText(value);
+    public void setWindSpeed(String value) {
+        this.windSpeed.setText(value);
     }
 
     public void setWeatherImage(int value) {

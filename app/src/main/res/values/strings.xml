@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">WeatherApp</string>
 
-    <string name="example_title">This is an awesome title</string>
-    <string name="example_subtitle">I\'m a cool subtitle, larger than the title</string>
+    <string name="wind">wind</string>
+    <string name="pressure">pressure</string>
+    <string name="humidity">humidity</string>
+    <string name="icon_weather">icon weather</string>
+    <string name="nothing_to_show">Nothing to show</string>
+
 
 </resources>

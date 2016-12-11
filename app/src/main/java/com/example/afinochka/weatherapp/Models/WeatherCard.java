@@ -3,33 +3,18 @@ package com.example.afinochka.weatherapp.Models;
 
 public class WeatherCard
 {
-    private int id;
     private String weekDay;
     private String date;
     private String weatherDescription;
-    private String temperature;
+    private double temperature;
     private int pressure;
     private int humidity;
-    private int humidity2;
+    private double windSpeed;
     private int weatherImage;
 
     public WeatherCard(){}
-    public WeatherCard(int id, String weekDay, String date, String weatherDescription,
-                       String temperature, int pressure, int humidity, int humidity2,
-                       int weatherImage){
-        this.id = id;
-        this.weekDay = weekDay;
-        this.date = date;
-        this.weatherDescription = weatherDescription;
-        this.temperature = temperature;
-        this.pressure = pressure;
-        this.humidity = humidity;
-        this.humidity2 = humidity2;
-        this.weatherImage = weatherImage;
-    }
-
     public WeatherCard(String weekDay, String date, String weatherDescription,
-                       String temperature, int pressure, int humidity, int humidity2,
+                       double temperature, int pressure, int humidity, double windSpeed,
                        int weatherImage){
         this.weekDay = weekDay;
         this.date = date;
@@ -37,16 +22,8 @@ public class WeatherCard
         this.temperature = temperature;
         this.pressure = pressure;
         this.humidity = humidity;
-        this.humidity2 = humidity2;
+        this.windSpeed = windSpeed;
         this.weatherImage = weatherImage;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getWeekDay() {
@@ -73,11 +50,11 @@ public class WeatherCard
         this.weatherDescription = weatherDescription;
     }
 
-    public String getTemperature() {
+    public double getTemperature() {
         return temperature;
     }
 
-    public void setTemperature(String temperature) {
+    public void setTemperature(double temperature) {
         this.temperature = temperature;
     }
 
@@ -97,12 +74,12 @@ public class WeatherCard
         this.humidity = humidity;
     }
 
-    public int getHumidity2() {
-        return humidity2;
+    public double getWindSpeed() {
+        return windSpeed;
     }
 
-    public void setHumidity2(int humidity2) {
-        this.humidity2 = humidity2;
+    public void setWindSpeed(double windSpeed) {
+        this.windSpeed = windSpeed;
     }
 
     public int getWeatherImage() {

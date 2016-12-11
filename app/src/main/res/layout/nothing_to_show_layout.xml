@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:background="@color/colorPrimary"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     android:gravity="center"
-    android:layout_height="match_parent">
+    android:orientation="vertical">
+
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="30dp"
-        android:src="@drawable/oops"/>
+        android:contentDescription="@string/nothing_to_show"
+        android:src="@drawable/oops" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:textSize="28sp"
-        android:text="Nothing to show"/>
+        android:text="@string/nothing_to_show"
+        android:textSize="28sp" />
 
     <Button
+        android:id="@+id/update"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="@drawable/update"
-        android:id="@+id/update" />
+        android:background="@drawable/ic_sync_white_24dp" />
+
 </LinearLayout>

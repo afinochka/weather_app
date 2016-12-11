@@ -3,16 +3,11 @@ package com.example.afinochka.weatherapp.Activities;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
-import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -20,21 +15,25 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.afinochka.weatherapp.API.API;
+import com.example.afinochka.weatherapp.Adapters.WeatherAdapter;
 import com.example.afinochka.weatherapp.Animation.GoAnimation;
+import com.example.afinochka.weatherapp.Database.DatabaseHandler;
 import com.example.afinochka.weatherapp.Models.JSONResponse;
+import com.example.afinochka.weatherapp.Models.LastWeather;
+import com.example.afinochka.weatherapp.Models.List;
+import com.example.afinochka.weatherapp.Models.WeatherCard;
+import com.example.afinochka.weatherapp.Parsers.AsyncXMLParser;
+import com.example.afinochka.weatherapp.Parsers.DateParser;
 import com.example.afinochka.weatherapp.R;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,62 +42,101 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "WeatherAppTag";
-    ProgressBar progress;
-    ProgressDialog progressDialog;
+    private final String METRIC_OF_CELSIUS = "°C";
+
     private RecyclerView recyclerView;
-    public boolean wasUpdate;
+    private WeatherAdapter adapter;
 
-    double latitude; // Latitude
-    double longitude; // Longitude
+    private boolean wasUpdate;
+    private DatabaseHandler db;
+    private java.util.List<WeatherCard> data = new ArrayList<>();
 
-    // The minimum distance to change Updates in meters
+    private double latitude;
+    private double longitude;
+
+    private TextView city;
+    private TextView country;
+    private TextView weather;
+    private ImageView iconWeather;
+
+    private ProgressDialog progressDialog;
+
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
 
-    // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60; // 1 minute
 
-    // Declaring a Location Manager
     LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        db = new DatabaseHandler(this);
         checkContentView();
 
-        /*Button getWeather = (Button) findViewById(R.id.get_weather);
+    }
 
-        TextView textView = (TextView) findViewById(R.id.location);
+    public void checkContentView() {
+        if (isOnline()) {
+            setContent(R.layout.main_layout_without_collapse);
+            initRecyclerView();
+            updateWeather();
+        } else if (!isOnline() && getLastWeather() == null) {
+            setContent(R.layout.nothing_to_show_layout);
+        } else {
+            setContent(R.layout.main_layout_without_collapse);
+            addValuesToViews(getLastWeather());
+        }
+    }
 
-        getWeather.setOnClickListener(view -> {
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
 
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 
-            if (!isOnline())
-                Toast.makeText(this, "Network is not connected", Toast.LENGTH_SHORT).show();
-            else {
-                API.get().getWeatherByCityName("Minsk").enqueue(new Callback<JSONResponse>() {
-                    @Override
-                    public void onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
-                        textView.setText(response.body().getName());
-                    }
+    private void setContent(int layout) {
+        switch (layout) {
+            case R.layout.main_layout_without_collapse:
 
-                    @Override
-                    public void onFailure(Call<JSONResponse> call, Throwable t) {
-                        textView.setText("Something wrong \n" + t.getMessage());
-                    }
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setMessage("Updating...");
+                progressDialog.show();
+
+                setContentView(layout);
+
+                Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+                setSupportActionBar(toolbar);
+
+                recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+
+                city = (TextView) findViewById(R.id.city);
+                country = (TextView) findViewById(R.id.country);
+                weather = (TextView) findViewById(R.id.weather);
+                iconWeather = (ImageView) findViewById(R.id.icon_weather);
+
+                wasUpdate = false;
+                break;
+            case R.layout.nothing_to_show_layout:
+                if (!wasUpdate)
+                    setContentView(layout);
+
+                sendToast("Please, enable network");
+                Button update = (Button) findViewById(R.id.update);
+                update.setOnClickListener(view -> {
+                    GoAnimation.usedAnimation(getApplicationContext(), update, this);
                 });
-                /*Location location = getLocation();
-                if (null != location) {
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
+                break;
+            default:
+                break;
+        }
+    }
 
-                    textView.setText("Your Location is - \n" +
-                            "Lat: " + latitude + "\n" +
-                            "Long: " + longitude + "\n" +
-                            "City: " + getCity(latitude, longitude));
-                }*/
-        // }
-        // });
+    private void initRecyclerView() {
+        adapter = new WeatherAdapter(data);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -106,10 +144,12 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_toolbar, menu);
         return true;
     }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
 
-        if(item.getItemId() == R.id.update_menu_item){
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == R.id.update_menu_item) {
+            sendToast("Updating...");
             updateWeather();
             return true;
         }
@@ -117,27 +157,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void initRecyclerView() {
-        //recyclerView.setAdapter(new WhetherAdapter(5));
-    }
-
-    private void updateWeather(){
-
-        TextView city = (TextView) findViewById(R.id.city);
-        TextView country = (TextView) findViewById(R.id.country);
-        TextView weather = (TextView) findViewById(R.id.weather);
+    private void updateWeather() {
 
         if (!isOnline())
-            Toast.makeText(this, "Network is not connected", Toast.LENGTH_SHORT).show();
+            sendToast("Network is not connected");
         else {
-            API.get().getWeatherByCityName("Minsk").enqueue(new Callback<JSONResponse>() {
+            Location location = getLocation();
+            if (null != location) {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+            }
+
+            API.get().getWeatherByLocation(latitude, longitude).enqueue(new Callback<JSONResponse>() {
                 @Override
                 public void onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
-                    city.setText(response.body().getName());
-                    country.setText(response.body().getSys().getCountry());
 
-                    weather.setText(response.body().getWeather().get(0).getDescription()
-                    + "\n" + response.body().getMain().getTemp() + "°C");
+                    String country =
+                            getCountryByCountryCode(response.body().getCity().getCountry());
+
+                    writeWeatherToDatabase(response.body(), country);
+                    addValuesToViews(getLastWeather());
+                    fillRecyclerView(response.body());
+
+                    progressDialog.dismiss();
                 }
 
                 @Override
@@ -145,51 +187,106 @@ public class MainActivity extends AppCompatActivity {
                     sendToast("Something wrong \n" + t.getMessage());
                 }
             });
-            Location location = getLocation();
-            if (null != location) {
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
 
-                sendToast("Location is - \n" +
-                        "Lat: " + latitude + "\n" +
-                        "Long: " + longitude);
-            }
         }
     }
 
-    private void sendToast(String message){
+    private void fillRecyclerView(JSONResponse response) {
+        data.clear();
+        String currentDate = DateParser.getCurrentDateByEnglishFormat();
+        for (List l : response.getList()) {
+            String date = l.getDtTxt();
+            if (!date.contains(currentDate) && date.contains("12:00:00")){
+                WeatherCard card = new WeatherCard();
+                card.setWeekDay(DateParser.weekDayByDate(date));
+                card.setDate(DateParser.parseDateFromEnglishDate(date));
+                card.setWeatherDescription(l.getWeather().get(0).getMain());
+                card.setTemperature(l.getMain().getTemp());
+                card.setPressure((int)(l.getMain().getPressure()));
+                card.setHumidity((int)(l.getMain().getHumidity()));
+                card.setWindSpeed(l.getWind().getSpeed());
+                card.setWeatherImage(chooseIconByWeatherDescription(l.getWeather().get(0).getMain()));
+                data.add(card);
+                adapter.notifyDataSetChanged();
+            }
+        }
+
+    }
+
+    private void addValuesToViews(LastWeather lastWeather) {
+        String weatherString = lastWeather.getWeatherDescription() + " "
+                + lastWeather.getTemperature() + METRIC_OF_CELSIUS;
+
+        city.setText(lastWeather.getCity());
+        country.setText(lastWeather.getCountry());
+        weather.setText(weatherString);
+        iconWeather.setImageResource(lastWeather.getIconId());
+    }
+
+    private String getCountryByCountryCode(String countryCode) {
+        AsyncXMLParser asyncTask = new AsyncXMLParser(MainActivity.this);
+        asyncTask.execute(countryCode);
+        try {
+            return asyncTask.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return null;
+    }
+
+    private void writeWeatherToDatabase(JSONResponse response, String country) {
+
+        LastWeather weather = new LastWeather();
+
+        String description = response.getList().get(0).getWeather().get(0).getMain();
+
+        weather.setCity(response.getCity().getName());
+        weather.setCountry(country);
+        weather.setWeatherDescription(description);
+        weather.setTemperature(response.getList().get(0).getMain().getTemp());
+
+        int iconId;
+        if(DateParser.dayOrNight(response.getList().get(0).getDtTxt()).equals("Night"))
+            iconId = chooseIconByWeatherDescription(description + "Night");
+        else
+            iconId = chooseIconByWeatherDescription(description);
+        weather.setIconId(iconId);
+
+        if (getLastWeather() != null) {
+            db.updateLastWeather(weather);
+        } else
+            db.addLastWeather(weather);
+    }
+
+    private int chooseIconByWeatherDescription(String description){
+        switch(description){
+            case "Clear":
+                return R.drawable.weather_clear;
+            case "ClearNight":
+                return R.drawable.weather_clear_night;
+            case "Rain":
+                return R.drawable.weather_rain_day;
+            case "RainNight":
+                return R.drawable.weather_rain_night;
+            case "Snow":
+                return R.drawable.weather_snow_day;
+            case "SnowNight":
+                return R.drawable.weather_snow_night;
+            case "Clouds":
+                return R.drawable.weather_clouds;
+            case "CloudsNight":
+                return R.drawable.weather_clouds_night;
+            default:
+                return R.drawable.weather_clear;
+        }
+    }
+
+    private void sendToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    public void checkContentView() {
-        if (isOnline()) {
-            setContentView(R.layout.activity_main_layout);
-
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-
-            recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
-            initRecyclerView();
-            wasUpdate = false;
-        } else {
-            if (!wasUpdate)
-                setContentView(R.layout.nothing_to_show_layout);
-
-            sendToast("Please, enable network");
-            Button update = (Button) findViewById(R.id.update);
-            update.setOnClickListener(view -> {
-                GoAnimation.usedAnimation(getApplicationContext(), update, this);
-            });
-
-        }
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+    private LastWeather getLastWeather() {
+        return db.getLastWeather();
     }
 
     public Location getLocation() {
@@ -210,29 +307,17 @@ public class MainActivity extends AppCompatActivity {
                         .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
 
-
         } catch (SecurityException ex) {
-            Log.e("weatherTag", ex.getMessage());
+            Log.e(TAG, ex.getMessage());
         } catch (Exception ex) {
-            Log.e("weatherTag", ex.getMessage());
+            Log.e(TAG, ex.getMessage());
         }
 
         return location;
     }
 
-    public String getCity(double latitude, double longitude) {
-
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            if (addresses.size() > 0) {
-                return addresses.get(0).getLocality();
-            }
-
-        } catch (IOException ex) {
-            Log.e("weatherTag", ex.getMessage());
-        }
-        return null;
+    public void setWasUpdate(boolean wasUpdate){
+        this.wasUpdate = wasUpdate;
     }
 
     private class GPSLocationListener implements LocationListener {

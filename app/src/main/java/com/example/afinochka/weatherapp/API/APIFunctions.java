@@ -12,10 +12,10 @@ import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface APIFunctions {
-    @GET("weather")
-    public Call<JSONResponse> getWeatherByLocation(@Query("lat") int latitude,
-                                                   @Query("lon") int longitude);
+    @GET("forecast")
+    public Call<JSONResponse> getWeatherByLocation(@Query("lat") double latitude,
+                                                   @Query("lon") double longitude);
 
-    @GET("weather")
+    @GET("forecast")
     public Call<JSONResponse> getWeatherByCityName(@Query("q") String cityName);
 }

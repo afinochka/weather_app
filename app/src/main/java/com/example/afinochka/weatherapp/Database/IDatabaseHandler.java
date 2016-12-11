@@ -1,23 +1,20 @@
 package com.example.afinochka.weatherapp.Database;
 
+import com.example.afinochka.weatherapp.Models.LastWeather;
 import com.example.afinochka.weatherapp.Models.WeatherCard;
 
 import java.util.List;
 
 public interface IDatabaseHandler {
 
-    public void addWeatherCard(WeatherCard weatherCard);
+    void addLastWeather(LastWeather weather);
 
-    public WeatherCard getWeatherCard(int id);
+    LastWeather getLastWeather();
 
-    public List<WeatherCard> getAllWeatherCards();
+    int updateLastWeather(LastWeather weather);
 
-    public int getWeatherCardsCount();
+    void deleteLastWeather(LastWeather weather);
 
-    public int updateWeatherCard(WeatherCard message);
-
-    public void deleteWeatherCard(WeatherCard message);
-
-    public void deleteAllWeatherCards();
+    void deleteAll();
 
 }
