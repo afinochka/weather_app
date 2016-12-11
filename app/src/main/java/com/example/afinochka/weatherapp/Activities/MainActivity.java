@@ -1,13 +1,24 @@
 package com.example.afinochka.weatherapp.Activities;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +26,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -60,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView city;
     private TextView country;
     private TextView weather;
-    private TextView title;
 
     private ImageView iconWeather;
     private Toolbar toolbar;
@@ -68,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
 
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
-
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60; // 1 minute
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     LocationManager locationManager;
 
@@ -77,20 +88,70 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
         db = new DatabaseHandler(this);
-        checkContentView();
+
+        if (checkPermissions())
+            checkContentView();
+        else
+            setContent(R.layout.nothing_to_show_layout);
 
     }
 
     public void checkContentView() {
         if (isOnline()) {
+            setLocationManager();
             setContent(R.layout.main_layout_without_collapse);
-            updateWeather();
-        } else if (!isOnline() && getLastWeather() == null) {
+        } else if ((!isOnline() && getLastWeather() == null)) {
             setContent(R.layout.nothing_to_show_layout);
         } else {
             setContent(R.layout.main_layout_without_collapse);
             addValuesToViews(getLastWeather());
+
+        }
+    }
+
+    private boolean checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }else {
+            requestPermissions();
+            return false;
+        }
+    }
+
+    private void requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setLocationManager();
+                    setContent(R.layout.main_layout_without_collapse);
+                } else {
+                    setContent(R.layout.nothing_to_show_layout);
+                }
+            }
+        }
+    }
+
+    private void setLocationManager() {
+        try {
+            locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
+                    MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListener);
+        } catch (SecurityException ex) {
+            Log.e(TAG, "Location permissions exception");
         }
     }
 
@@ -121,7 +182,6 @@ public class MainActivity extends AppCompatActivity {
                 city = (TextView) findViewById(R.id.city);
                 country = (TextView) findViewById(R.id.country);
                 weather = (TextView) findViewById(R.id.weather);
-                title = (TextView) findViewById(R.id.action_bar_title);
                 iconWeather = (ImageView) findViewById(R.id.icon_weather);
 
                 wasUpdate = false;
@@ -130,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!wasUpdate)
                     setContentView(layout);
 
-                sendToast("Please, enable network");
+                sendToast("Please, enable permissions for application or network");
                 Button update = (Button) findViewById(R.id.update);
                 update.setOnClickListener(view -> {
                     GoAnimation.usedAnimation(getApplicationContext(), update, this);
@@ -169,11 +229,6 @@ public class MainActivity extends AppCompatActivity {
         if (!isOnline())
             sendToast("Network is not connected");
         else {
-            Location location = getLocation();
-            if (null != location) {
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
-            }
 
             API.get().getWeatherByLocation(latitude, longitude).enqueue(new Callback<JSONResponse>() {
                 @Override
@@ -193,7 +248,6 @@ public class MainActivity extends AppCompatActivity {
                     sendToast("Something wrong \n" + t.getMessage());
                 }
             });
-
         }
     }
 
@@ -202,14 +256,14 @@ public class MainActivity extends AppCompatActivity {
         String currentDate = DateParser.getCurrentDateByEnglishFormat();
         for (List l : response.getList()) {
             String date = l.getDtTxt();
-            if (!date.contains(currentDate) && date.contains("12:00:00")){
+            if (!date.contains(currentDate) && date.contains("12:00:00")) {
                 WeatherCard card = new WeatherCard();
                 card.setWeekDay(DateParser.weekDayByDate(date));
                 card.setDate(DateParser.parseDateFromEnglishDate(date));
                 card.setWeatherDescription(l.getWeather().get(0).getMain());
                 card.setTemperature(l.getMain().getTemp());
-                card.setPressure((int)(l.getMain().getPressure()));
-                card.setHumidity((int)(l.getMain().getHumidity()));
+                card.setPressure((int) (l.getMain().getPressure()));
+                card.setHumidity((int) (l.getMain().getHumidity()));
                 card.setWindSpeed(l.getWind().getSpeed());
                 card.setWeatherImage(IconParser.
                         chooseIconByWeatherDescription(l.getWeather().get(0).getMain()));
@@ -228,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
         country.setText(lastWeather.getCountry());
         weather.setText(weatherString);
         iconWeather.setImageResource(lastWeather.getIconId());
-        getSupportActionBar().setTitle("last update: " + lastWeather.getCurrentDate());
+        getSupportActionBar().setTitle("Last update: " + lastWeather.getCurrentDate());
 
         progressDialog.dismiss();
     }
@@ -261,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
         weather.setCurrentDate(DateParser.getCurrentDate());
 
         int iconId;
-        if(DateParser.dayOrNight(response.getList().get(0).getDtTxt()).equals("Night"))
+        if (DateParser.dayOrNight(response.getList().get(0).getDtTxt()).equals("Night"))
             iconId = IconParser.chooseIconByWeatherDescription(description + "Night");
         else
             iconId = IconParser.chooseIconByWeatherDescription(description);
@@ -278,55 +332,30 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    public Location getLocation() {
-
-        Location location = null;
-
-        try {
-            locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
-
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES,
-                    new GPSLocationListener());
-
-            if (locationManager != null) {
-                location = locationManager
-                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
-
-        } catch (SecurityException ex) {
-            Log.e(TAG, ex.getMessage());
-        } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
-        }
-
-        return location;
-    }
-
-    public void setWasUpdate(boolean wasUpdate){
+    public void setWasUpdate(boolean wasUpdate) {
         this.wasUpdate = wasUpdate;
     }
 
-    private class GPSLocationListener implements LocationListener {
-
-        @Override
+    private final LocationListener locationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
             longitude = location.getLongitude();
             latitude = location.getLatitude();
+            updateWeather();
         }
 
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {
+
         }
 
         @Override
         public void onProviderEnabled(String s) {
+
         }
 
         @Override
         public void onProviderDisabled(String s) {
+
         }
-    }
+    };
 }

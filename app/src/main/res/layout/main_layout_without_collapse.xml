@@ -27,9 +27,7 @@
                 android:textColor="@android:color/white"
                 app:title="now"
                 app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.PopupMenu.Small"
-                app:popupTheme="@style/ThemeOverlay.AppCompat">
-
-            </android.support.v7.widget.Toolbar>
+                app:popupTheme="@style/ThemeOverlay.AppCompat" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -69,6 +67,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif"
+                        android:gravity="right"
                         android:id="@+id/city"
                         android:textColor="@android:color/black"
                         android:textSize="25sp" />
