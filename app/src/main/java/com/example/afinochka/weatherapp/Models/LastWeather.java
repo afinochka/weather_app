@@ -8,17 +8,19 @@ public class LastWeather {
     private String weatherDescription;
     private double temperature;
     private int iconId;
+    private String currentDate;
 
     public LastWeather(){}
 
     public LastWeather(int id, String city, String country, String weatherDescription,
-                       double temperature, int iconId){
+                       double temperature, int iconId, String currentDate){
         this.id = id;
         this.city = city;
         this.country = country;
         this.weatherDescription = weatherDescription;
         this.temperature = temperature;
         this.iconId = iconId;
+        this.currentDate = currentDate;
     }
 
     public LastWeather(String city, String country, String weatherDescription,
@@ -76,5 +78,13 @@ public class LastWeather {
 
     public void setIconId(int iconId) {
         this.iconId = iconId;
+    }
+
+    public String getCurrentDate() {
+        return currentDate;
+    }
+
+    public void setCurrentDate(String currentDate) {
+        this.currentDate = currentDate;
     }
 }

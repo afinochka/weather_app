@@ -21,6 +21,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements IDatabaseHandle
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_TEMPERATURE = "temperature";
     private static final String KEY_ICON_ID = "icon_id";
+    private static final String KEY_CURRENT = "current";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -36,6 +37,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements IDatabaseHandle
         values.put(KEY_DESCRIPTION, weather.getWeatherDescription());
         values.put(KEY_TEMPERATURE, weather.getTemperature());
         values.put(KEY_ICON_ID, weather.getIconId());
+        values.put(KEY_CURRENT, weather.getCurrentDate());
 
         db.insert(TABLE_LAST_WEATHER, null, values);
         db.close();
@@ -46,16 +48,16 @@ public class DatabaseHandler extends SQLiteOpenHelper implements IDatabaseHandle
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_LAST_WEATHER, new String[]{KEY_LAST_WEATHER_ID,
                         KEY_CITY, KEY_COUNTRY, KEY_DESCRIPTION, KEY_TEMPERATURE,
-                        KEY_ICON_ID},
+                        KEY_ICON_ID, KEY_CURRENT},
                 KEY_LAST_WEATHER_ID + "=?", new String[]{String.valueOf(1)},
                 null, null, null, null);
 
         LastWeather weather = null;
-        if (cursor != null && cursor.getCount() != -1) {
+        if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
             weather = new LastWeather(Integer.parseInt(cursor.getString(0)), cursor.getString(1),
                     cursor.getString(2), cursor.getString(3), Double.parseDouble(cursor.getString(4)),
-                    Integer.parseInt(cursor.getString(5)));
+                    Integer.parseInt(cursor.getString(5)), cursor.getString(6));
             cursor.close();
         }
 
@@ -73,6 +75,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements IDatabaseHandle
         values.put(KEY_DESCRIPTION, weather.getWeatherDescription());
         values.put(KEY_TEMPERATURE, weather.getTemperature());
         values.put(KEY_ICON_ID, weather.getIconId());
+        values.put(KEY_CURRENT, weather.getCurrentDate());
 
         int updated = db.update(TABLE_LAST_WEATHER, values, KEY_LAST_WEATHER_ID + " =?",
                 new String[]{String.valueOf(weather.getId())});
@@ -104,7 +107,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements IDatabaseHandle
                 + KEY_COUNTRY + " TEXT,"
                 + KEY_DESCRIPTION + " TEXT,"
                 + KEY_TEMPERATURE + " TEXT,"
-                + KEY_ICON_ID + " INT"
+                + KEY_ICON_ID + " INT,"
+                + KEY_CURRENT + " TEXT"
                 + ")";
 
         db.execSQL(CREATE_WEATHER_CARDS_TABLE);

@@ -23,10 +23,10 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
                 android:background="@color/topBackground"
+                android:textColor="@android:color/white"
                 app:title="now"
+                app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.PopupMenu.Small"
                 app:popupTheme="@style/ThemeOverlay.AppCompat">
 
             </android.support.v7.widget.Toolbar>

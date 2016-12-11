@@ -17,7 +17,7 @@ public class GoAnimation {
         anim.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                Toast toast = Toast.makeText(context, R.string.updating, Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(context, "Updating…", Toast.LENGTH_SHORT);
                 toast.show();
             }
 

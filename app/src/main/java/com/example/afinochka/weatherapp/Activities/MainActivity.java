@@ -30,7 +30,10 @@ import com.example.afinochka.weatherapp.Models.List;
 import com.example.afinochka.weatherapp.Models.WeatherCard;
 import com.example.afinochka.weatherapp.Parsers.AsyncXMLParser;
 import com.example.afinochka.weatherapp.Parsers.DateParser;
+import com.example.afinochka.weatherapp.Parsers.IconParser;
 import com.example.afinochka.weatherapp.R;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -57,7 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView city;
     private TextView country;
     private TextView weather;
+    private TextView title;
+
     private ImageView iconWeather;
+    private Toolbar toolbar;
 
     private ProgressDialog progressDialog;
 
@@ -79,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
     public void checkContentView() {
         if (isOnline()) {
             setContent(R.layout.main_layout_without_collapse);
-            initRecyclerView();
             updateWeather();
         } else if (!isOnline() && getLastWeather() == null) {
             setContent(R.layout.nothing_to_show_layout);
@@ -107,14 +112,16 @@ public class MainActivity extends AppCompatActivity {
 
                 setContentView(layout);
 
-                Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+                toolbar = (Toolbar) findViewById(R.id.toolbar);
                 setSupportActionBar(toolbar);
 
                 recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+                initRecyclerView();
 
                 city = (TextView) findViewById(R.id.city);
                 country = (TextView) findViewById(R.id.country);
                 weather = (TextView) findViewById(R.id.weather);
+                title = (TextView) findViewById(R.id.action_bar_title);
                 iconWeather = (ImageView) findViewById(R.id.icon_weather);
 
                 wasUpdate = false;
@@ -149,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (item.getItemId() == R.id.update_menu_item) {
-            sendToast("Updating...");
+            sendToast("Updating…");
             updateWeather();
             return true;
         }
@@ -178,8 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     writeWeatherToDatabase(response.body(), country);
                     addValuesToViews(getLastWeather());
                     fillRecyclerView(response.body());
-
-                    progressDialog.dismiss();
+                    getSupportActionBar().setTitle("now");
                 }
 
                 @Override
@@ -205,7 +211,8 @@ public class MainActivity extends AppCompatActivity {
                 card.setPressure((int)(l.getMain().getPressure()));
                 card.setHumidity((int)(l.getMain().getHumidity()));
                 card.setWindSpeed(l.getWind().getSpeed());
-                card.setWeatherImage(chooseIconByWeatherDescription(l.getWeather().get(0).getMain()));
+                card.setWeatherImage(IconParser.
+                        chooseIconByWeatherDescription(l.getWeather().get(0).getMain()));
                 data.add(card);
                 adapter.notifyDataSetChanged();
             }
@@ -221,6 +228,13 @@ public class MainActivity extends AppCompatActivity {
         country.setText(lastWeather.getCountry());
         weather.setText(weatherString);
         iconWeather.setImageResource(lastWeather.getIconId());
+        getSupportActionBar().setTitle("last update: " + lastWeather.getCurrentDate());
+
+        progressDialog.dismiss();
+    }
+
+    private LastWeather getLastWeather() {
+        return db.getLastWeather();
     }
 
     private String getCountryByCountryCode(String countryCode) {
@@ -244,12 +258,13 @@ public class MainActivity extends AppCompatActivity {
         weather.setCountry(country);
         weather.setWeatherDescription(description);
         weather.setTemperature(response.getList().get(0).getMain().getTemp());
+        weather.setCurrentDate(DateParser.getCurrentDate());
 
         int iconId;
         if(DateParser.dayOrNight(response.getList().get(0).getDtTxt()).equals("Night"))
-            iconId = chooseIconByWeatherDescription(description + "Night");
+            iconId = IconParser.chooseIconByWeatherDescription(description + "Night");
         else
-            iconId = chooseIconByWeatherDescription(description);
+            iconId = IconParser.chooseIconByWeatherDescription(description);
         weather.setIconId(iconId);
 
         if (getLastWeather() != null) {
@@ -258,35 +273,9 @@ public class MainActivity extends AppCompatActivity {
             db.addLastWeather(weather);
     }
 
-    private int chooseIconByWeatherDescription(String description){
-        switch(description){
-            case "Clear":
-                return R.drawable.weather_clear;
-            case "ClearNight":
-                return R.drawable.weather_clear_night;
-            case "Rain":
-                return R.drawable.weather_rain_day;
-            case "RainNight":
-                return R.drawable.weather_rain_night;
-            case "Snow":
-                return R.drawable.weather_snow_day;
-            case "SnowNight":
-                return R.drawable.weather_snow_night;
-            case "Clouds":
-                return R.drawable.weather_clouds;
-            case "CloudsNight":
-                return R.drawable.weather_clouds_night;
-            default:
-                return R.drawable.weather_clear;
-        }
-    }
 
     private void sendToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    private LastWeather getLastWeather() {
-        return db.getLastWeather();
     }
 
     public Location getLocation() {

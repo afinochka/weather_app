@@ -9,6 +9,10 @@ public class DateParser {
         su, mo, tu, we, th, fr, sa;
     }
 
+    enum MONTH{
+        Jan, Feb, Mar, Apr, May, June, July, Aug, Sept, Oct, Nov, Dec;
+    }
+
     private static Calendar mCurrentDate = Calendar.getInstance();
 
     public static String weekDayByDate(String date) {
@@ -68,6 +72,19 @@ public class DateParser {
         int mMonth = mCurrentDate.get(Calendar.MONTH) + 1;
         int mDay = mCurrentDate.get(Calendar.DAY_OF_MONTH);
         return mMonth + "-" + mDay;
+    }
+
+    public static String getCurrentDate() {
+
+        String btw = ":";
+        int mMonth = mCurrentDate.get(Calendar.MONTH);
+        int mDay = mCurrentDate.get(Calendar.DAY_OF_MONTH);
+        int mHour = mCurrentDate.get(Calendar.HOUR_OF_DAY);
+        int mMinute = mCurrentDate.get(Calendar.MINUTE);
+        if(mMinute < 10)
+            btw = ":0";
+
+        return mHour + btw + mMinute + ", " + mDay + " " + MONTH.values()[mMonth];
     }
 
 }
