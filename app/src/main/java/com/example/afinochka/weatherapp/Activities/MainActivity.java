@@ -92,10 +92,6 @@ public class MainActivity extends AppCompatActivity {
         db = new DatabaseHandler(this);
 
         checkPermissions();
-        /*if (checkPermissions())
-            checkContentView();
-        else
-            setContent(R.layout.nothing_to_show_layout);*/
 
     }
 
