@@ -9,4 +9,6 @@
 
     <string name="access">Access to locaton</string>
 
+    <string name="API_KEY_GMS">AIzaSyB3d_JQR7emku_nMTwLkLpL2nfSOhBM4tw</string>
+
 </resources>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -25,9 +24,9 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/topBackground"
                 android:textColor="@android:color/white"
-                app:title="now"
-                app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.PopupMenu.Small"
-                app:popupTheme="@style/ThemeOverlay.AppCompat" />
+                app:popupTheme="@style/ThemeOverlay.AppCompat"
+                app:title="@string/nothing_to_show"
+                app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.PopupMenu.Small" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -35,16 +34,16 @@
                 android:background="@color/topBackground"
                 android:fitsSystemWindows="true"
                 android:gravity="center_horizontal"
-                android:paddingTop="10dp"
                 android:paddingEnd="40dp"
-                android:paddingStart="45dp">
+                android:paddingStart="45dp"
+                android:paddingTop="10dp">
 
                 <ImageView
                     android:id="@+id/icon_weather"
                     android:layout_width="100dp"
                     android:layout_height="110dp"
-                    android:contentDescription="@string/icon_weather"
-                    android:layout_weight="0.1" />
+                    android:layout_weight="0.1"
+                    android:contentDescription="@string/icon_weather" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -54,28 +53,28 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/country"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif"
-                        android:id="@+id/country"
                         android:textColor="@android:color/white"
                         android:textSize="19sp" />
 
                     <TextView
+                        android:id="@+id/city"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         android:fontFamily="sans-serif"
                         android:gravity="right"
-                        android:id="@+id/city"
                         android:textColor="@android:color/black"
                         android:textSize="25sp" />
 
                     <TextView
+                        android:id="@+id/weather"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/weather"
                         android:fontFamily="monospace"
                         android:textColor="@android:color/white"
                         android:textSize="20sp" />
@@ -85,21 +84,40 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <View
-        android:id="@+id/separator"
-        android:layout_width="match_parent"
-        android:layout_marginTop="213dp"
-        android:layout_height="2dp"
-        android:background="@android:color/white" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:scrollbars="vertical"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:listitem="@layout/list_item_card" />
+        android:layout_marginTop="215dp">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:scrollbars="vertical"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:listitem="@layout/list_item_card" />
+
+        <ImageView
+            android:id="@+id/loading_indicator"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="50dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_autorenew_indigo_500_48dp"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/nothing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="50dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/oops"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>

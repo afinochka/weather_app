@@ -1,4 +1,4 @@
-package com.example.afinochka.weatherapp.Adapters;
+package com.example.afinochka.weatherapp.Adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
