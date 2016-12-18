@@ -82,9 +82,6 @@ public class MainActivity extends BaseActivity {
     private Subscription updatableLocationSubscription;
     private Subscription weatherSubscription;
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -190,27 +187,6 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-   /* @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS:
-                switch (resultCode) {
-                    case RESULT_OK:
-                        onLocationPermissionGranted();
-                        Log.d(TAG, "User enabled location");
-                        break;
-                    case RESULT_CANCELED:
-                        getLocation();
-                        Log.d(TAG, "User Cancelled enabling location");
-                        break;
-                    default:
-                        break;
-                }
-                break;
-        }
-    }*/
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_toolbar, menu);
@@ -223,8 +199,6 @@ public class MainActivity extends BaseActivity {
         int id = item.getItemId();
         switch (id) {
             case R.id.refresh:
-                /*if (wasUpdate)
-                    API.resetObservable();*/
                 if(!checkPermissions())
                     nothing.setVisibility(View.VISIBLE);
                 else {
@@ -232,7 +206,6 @@ public class MainActivity extends BaseActivity {
                     showLoadingIndicator(true);
                     getLocation();
                     onLocationPermissionGranted();
-                    //getWeather(latitude, longitude);
                 }
                 return true;
         }
