@@ -3,15 +3,20 @@ package com.example.afinochka.weatherapp.Activities;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -37,6 +42,7 @@ import com.example.afinochka.weatherapp.R;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
@@ -48,9 +54,10 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "WeatherAppTag";
     private final String METRIC_OF_CELSIUS = "°C";
@@ -76,8 +83,11 @@ public class MainActivity extends BaseActivity {
     private final static int PERMISSION_REQUEST_CODE = 100;
     private final static int REQUEST_CHECK_SETTINGS = 0;
 
-    ReactiveLocationProvider locationProvider;
+    private ReactiveLocationProvider locationProvider;
+
     private Observable<Location> locationUpdatesObservable;
+    private LocationRequest locationRequest;
+    private LocationManager locationManager;
 
     private Subscription updatableLocationSubscription;
     private Subscription weatherSubscription;
@@ -89,7 +99,11 @@ public class MainActivity extends BaseActivity {
 
         initViews();
 
-        locationProvider = new ReactiveLocationProvider(MainActivity.this);
+        locationProvider = new ReactiveLocationProvider(getApplicationContext());
+        locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setNumUpdates(5)
+                .setInterval(100);
 
         if (SPHandler.contains("city"))
             addValuesToViews();
@@ -118,11 +132,6 @@ public class MainActivity extends BaseActivity {
 
     private void getLocation() {
 
-        final LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setNumUpdates(5)
-                .setInterval(100);
-
         try {
             locationUpdatesObservable = locationProvider
                     .checkLocationSettings(
@@ -131,14 +140,25 @@ public class MainActivity extends BaseActivity {
                                     .setAlwaysShow(true)
                                     .build()
                     )
-                    .flatMap(locationSettingsResult -> locationProvider.getUpdatedLocation(locationRequest));
+                    .doOnNext(locationSettingsResult -> {
+                        Status status = locationSettingsResult.getStatus();
+                        if (status.getStatusCode() == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
+                            try {
+                                status.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                            } catch (IntentSender.SendIntentException th) {
+                                Log.e("MainActivity", "Error opening settings activity.", th);
+                            }
+                        }
+                    })
+                    .flatMap(locationSettingsResult ->
+                            locationProvider.getUpdatedLocation(locationRequest));
         }
         catch (SecurityException ex){
             Log.e(TAG, "SecureException " + ex.getMessage());
         }
+
     }
 
-    @Override
     protected void onLocationPermissionGranted() {
         updatableLocationSubscription = locationUpdatesObservable
                 .subscribe(location -> {
@@ -156,13 +176,12 @@ public class MainActivity extends BaseActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }else
-            requestPermission();
+            requestPermissions();
         return false;
 
     }
 
-    @Override
-    protected void requestPermission() {
+    private void requestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -173,7 +192,7 @@ public class MainActivity extends BaseActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case PERMISSION_REQUEST_CODE: {
+            case PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     nothing.setVisibility(View.GONE);
@@ -183,7 +202,27 @@ public class MainActivity extends BaseActivity {
                 } else {
                     nothing.setVisibility(View.VISIBLE);
                 }
-            }
+
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case RESULT_OK:
+                        Log.d(TAG, "User enabled location");
+                        break;
+                    case RESULT_CANCELED:
+                        Log.d(TAG, "User Cancelled enabling location");
+                        break;
+                    default:
+                        break;
+                }
+                break;
         }
     }
 
